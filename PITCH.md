@@ -20,9 +20,11 @@ I'm a regular customer. A barista mentioned you sometimes run out of items like 
 
 I'd love **10 minutes** with a store or ops manager to show a 5-minute demo. No cost, no obligation.
 
-[Your name]  
-[Phone]  
-[GitHub link to StockSight]
+**Live demo:** [YOUR-STREAMLIT-URL].streamlit.app  
+**Code:** https://github.com/mastershifu24/StockSight
+
+Ahmed Shifa  
+[Your phone]
 
 ---
 

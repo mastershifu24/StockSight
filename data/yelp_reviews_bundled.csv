@@ -1,11 +1,20 @@
-store_name,store_address,rating,user,date,text,menu_mentions,source
-Think Coffee,123 4th Ave,5,Leah S,2026-04-29,Excellent selection of baked goods. Granola yogurt is amazing.,granola|pastry,bundled
-Think Coffee,123 4th Ave,5,Bruce D,2025-10-19,I had a large matcha thick frosty and delicious.,matcha,bundled
-Think Coffee,123 4th Ave,5,David H,2024-11-24,Double espresso was smooth and creamy. Muffins scones and breads available.,espresso|muffin|scone,bundled
-Think Coffee,123 4th Ave,5,Erik B,2024-12-05,Almond croissant flaky buttery almond paste. Hot coffee rich and smooth.,almond|croissant|pastry|coffee,bundled
-Think Coffee,123 4th Ave,4,Kailey N,2025-07-19,Picked up matcha via app. Matcha was tasty.,matcha,bundled
-Think Coffee,123 4th Ave,5,Michelle T,2024-11-15,Large latte and ham cheese croissant. Latte perfect balance.,latte|croissant,bundled
-Think Coffee,123 4th Ave,3,Valerie W,2024-12-15,Strawberry matcha lemonade decently good. Good spot to do work.,matcha,bundled
-Think Coffee,123 4th Ave,5,Jade M,2026-04-29,Matcha and sandwich. Specialty drinks amazing.,matcha|sandwich,bundled
-Think Coffee,123 4th Ave,4,Kim F,2024-04-04,Graham cracker latte hit the spot.,latte|coffee,bundled
-Think Coffee,123 4th Ave,1,Apple B,2025-11-14,Ground coffee handed loose in bags. Used to be loyal visitor.,coffee,bundled
+store_name,store_address,neighborhood,rating,user,date,text,menu_mentions,source
+Think Coffee,123 4th Ave,Union Square,5,Leah S,2026-04-29,Excellent selection of baked goods. Granola yogurt is amazing.,granola|pastry,bundled
+Think Coffee,123 4th Ave,Union Square,5,Bruce D,2025-10-19,I had a large matcha thick frosty and delicious.,matcha,bundled
+Think Coffee,123 4th Ave,Union Square,5,David H,2024-11-24,Double espresso was smooth and creamy. Muffins scones and breads available.,espresso|muffin|scone,bundled
+Think Coffee,123 4th Ave,Union Square,5,Erik B,2024-12-05,Almond croissant flaky buttery almond paste. Hot coffee rich and smooth.,almond|croissant|pastry|coffee,bundled
+Think Coffee,123 4th Ave,Union Square,4,Kailey N,2025-07-19,Picked up matcha via app. Matcha was tasty.,matcha,bundled
+Think Coffee,123 4th Ave,Union Square,5,Michelle T,2024-11-15,Large latte and ham cheese croissant. Latte perfect balance.,latte|croissant,bundled
+Think Coffee,123 4th Ave,Union Square,3,Valerie W,2024-12-15,Strawberry matcha lemonade decently good. Good spot to do work.,matcha,bundled
+Think Coffee,123 4th Ave,Union Square,5,Jade M,2026-04-29,Matcha and sandwich. Specialty drinks amazing.,matcha|sandwich,bundled
+Think Coffee,123 4th Ave,Union Square,4,Kim F,2024-04-04,Graham cracker latte hit the spot.,latte|coffee,bundled
+Think Coffee,123 4th Ave,Union Square,1,Apple B,2025-11-14,Ground coffee handed loose in bags. Used to be loyal visitor.,coffee,bundled
+Think Coffee,248 Mercer St,Greenwich Village,5,Sarah M,2025-08-10,Best almond croissant in the neighborhood. Espresso always on point.,almond|croissant|espresso,bundled
+Think Coffee,248 Mercer St,Greenwich Village,4,James T,2024-09-22,Spanish latte is my go-to. Busy on weekends but worth the wait.,latte|coffee,bundled
+Think Coffee,248 Mercer St,Greenwich Village,5,Noor K,2025-03-14,Chai latte and a scone — perfect afternoon pick-me-up.,chai|scone|latte,bundled
+Think Coffee,568 6th Ave,Flatiron,5,Chris L,2025-06-01,Cold brew and egg sandwich before work. Never disappoints.,cold brew|egg|sandwich,bundled
+Think Coffee,568 6th Ave,Flatiron,4,Anna P,2024-11-08,Great spot for laptop work. Matcha latte was excellent.,matcha|latte,bundled
+Think Coffee,1 Bleecker St,NoHo,5,Morgan R,2025-01-20,Bleecker focaccia sandwich was incredible. Fresh and filling.,sandwich,bundled
+Think Coffee,1 Bleecker St,NoHo,4,Tyler W,2024-07-03,Pressed focaccia and drip coffee — solid lunch rush option.,coffee|sandwich,bundled
+Think Coffee,73 8th Ave,Meatpacking,5,Jordan H,2025-05-18,Breakfast burrito with bacon add-on. Exactly what I needed.,bacon|burrito|egg,bundled
+Think Coffee,73 8th Ave,Meatpacking,4,Emily C,2024-12-01,Avocado toast and cold brew. Quick and fresh.,cold brew,bundled

@@ -12,6 +12,7 @@ import requests
 ROOT = Path(__file__).resolve().parent.parent
 BUNDLED_REVIEWS = ROOT / "data" / "yelp_reviews_bundled.csv"
 BUNDLED_POPULAR = ROOT / "data" / "yelp_popular_items.csv"
+BUNDLED_LOCATIONS = ROOT / "data" / "yelp_locations_bundled.csv"
 
 API_BASE = "https://api.yelp.com/v3"
 MAX_API_REVIEWS = 3
@@ -41,6 +42,13 @@ def load_bundled_popular() -> pd.DataFrame:
     if not BUNDLED_POPULAR.exists():
         return pd.DataFrame()
     return pd.read_csv(BUNDLED_POPULAR)
+
+
+def load_bundled_locations() -> pd.DataFrame:
+    """All 11 Think Coffee NYC locations (from public store listing)."""
+    if not BUNDLED_LOCATIONS.exists():
+        return pd.DataFrame()
+    return pd.read_csv(BUNDLED_LOCATIONS)
 
 
 def _headers(api_key: str) -> dict:

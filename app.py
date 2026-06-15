@@ -58,9 +58,17 @@ def _load_yelp_reviews(api_key: str | None) -> pd.DataFrame:
     return get_reviews(api_key)
 
 
+@st.cache_data(show_spinner=False)
+def _load_yelp_locations() -> pd.DataFrame:
+    from src.yelp_data import load_bundled_locations
+
+    return load_bundled_locations()
+
+
 item_map = load_demo_item_map()
 yelp_popular = load_yelp_popular()
 yelp_reviews = _load_yelp_reviews(_yelp_api_key())
+yelp_locations = _load_yelp_locations()
 menu_catalog = load_menu_catalog()
 
 if uploaded:
@@ -130,15 +138,22 @@ with st.expander("Yelp demand signals (public reviews)"):
         if "store_address" in yelp_reviews.columns and not yelp_reviews.empty
         else 1
     )
+    total_stores = len(yelp_locations) if not yelp_locations.empty else store_n
     st.caption(
-        f"**{len(yelp_reviews)} reviews** from Think Coffee's public Yelp pages "
-        f"({store_n} location{'s' if store_n != 1 else ''}). "
-        "Popular drinks from Yelp menu data. **Not used for order forecasting.**"
+        f"**{len(yelp_reviews)} reviews** across **{store_n} locations** "
+        f"(Think Coffee has **{total_stores}** NYC stores). "
+        "Popular drinks from public Yelp data. **Not used for order forecasting.**"
     )
+    if not yelp_locations.empty:
+        st.markdown("**All NYC locations**")
+        show_dataframe(yelp_locations, hide_index=True)
     show_dataframe(yelp_popular.sort_values("review_mentions", ascending=False), hide_index=True)
     if not yelp_reviews.empty:
-        st.markdown("**Sample reviews**")
-        review_cols = [c for c in ["store_address", "user", "rating", "date", "menu_mentions"] if c in yelp_reviews.columns]
+        st.markdown("**Sample reviews by location**")
+        review_cols = [
+            c for c in ["neighborhood", "store_address", "user", "rating", "date", "menu_mentions"]
+            if c in yelp_reviews.columns
+        ]
         show_dataframe(yelp_reviews[review_cols], hide_index=True)
 
 with st.expander("Think Coffee menu catalog (from public menus)"):
