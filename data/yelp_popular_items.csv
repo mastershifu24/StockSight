@@ -1,0 +1,12 @@
+item_label,category,review_mentions,photo_count,notes
+Spanish Latte,drinks,19,8,Yelp Popular Drinks #1
+Cold Brew,drinks,7,5,Yelp Popular Drinks
+Chai Latte,drinks,12,3,Yelp Popular Drinks
+Strawberry Matcha Lemonade,drinks,3,3,Yelp Popular Drinks
+Matcha Latte,drinks,8,0,Frequent in review text
+Almond Croissant,pastry,6,0,Top pastry mention in reviews
+Ham Cheese Croissant,pastry,4,0,Breakfast pastry reviews
+Granola Parfait,breakfast,3,0,Granola yogurt praised
+Egg Sandwich,breakfast,5,0,Sandwich + bacon ops relevance
+Muffin,pastry,4,0,Muffins scones breads in reviews
+Graham Cracker Latte,drinks,2,1,Specialty drink reviews

@@ -1,0 +1,30 @@
+menu_item,menu_label,category,price_usd,source
+egg_and_cheese,Egg & Cheese,breakfast,7.75,think_coffee_menu
+the_hook,The Hook,breakfast,14.50,think_coffee_menu
+sando_ranchero,Sando Ranchero,breakfast,13.50,think_coffee_menu
+breakfast_burrito,Breakfast Burrito,breakfast,10.95,think_coffee_menu
+signature_egg_sandwich,Signature Egg Sandwich,breakfast,7.75,think_coffee_menu
+grilled_pbj,Grilled PB&J,breakfast,6.00,think_coffee_menu
+farmhouse_turkey,Farmhouse Smoked Turkey,sandwich,0,think_coffee_web
+vegan_sandwich,Vegan Sandwich,sandwich,0,think_coffee_web
+peanut_butter_jelly,Peanut Butter & Jelly,sandwich,0,think_coffee_web
+ham_cheddar_sandwich,Ham & Smiths Cheddar,sandwich,0,think_coffee_web
+bleecker_focaccia,Bleecker (Focaccia),focaccia,13.00,think_coffee_menu
+flatiron_focaccia,Flatiron (Focaccia),focaccia,13.00,think_coffee_menu
+grilled_cheese,Grilled Cheese,main,0,think_coffee_web
+spanish_latte,Spanish Latte,drinks,6.50,think_coffee_menu
+matcha_latte,Matcha Latte,drinks,6.50,think_coffee_menu
+chai_latte,Chai Latte,drinks,6.50,think_coffee_menu
+cold_brew,Cold Brew,drinks,5.00,think_coffee_menu
+drip_coffee,Drip Coffee,drinks,3.75,think_coffee_menu
+mocha_latte,Mocha Latte,drinks,6.50,think_coffee_menu
+graham_cracker_latte,Graham Cracker Latte,drinks,6.50,think_coffee_menu
+strawberry_matcha_lemonade,Strawberry Matcha Lemonade,drinks,6.50,think_coffee_menu
+hot_chocolate,Hot Chocolate,drinks,5.50,think_coffee_menu
+almond_croissant,Almond Croissant,pastry,6.25,think_coffee_menu
+ham_cheese_croissant,Ham & Cheese Croissant,pastry,6.50,think_coffee_menu
+muffin,Muffin,pastry,5.25,think_coffee_menu
+scone,Scone,pastry,5.25,think_coffee_menu
+chocolate_cookie,Cookie,pastry,5.25,think_coffee_menu
+granola_parfait,Granola Parfait,breakfast,0,think_coffee_web
+classic_nyc_bagel,Classic NYC Bagel,breakfast,14.00,think_coffee_menu
