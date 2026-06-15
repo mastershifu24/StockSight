@@ -25,7 +25,7 @@ streamlit run app.py
 
 **Demo mapping:** `data/demo_item_map.csv` — maps bundled sales to Think Coffee SKUs.
 
-**Yelp signals:** `data/yelp_popular_items.csv` — popular items from public reviews. Refresh: `python scripts/fetch_yelp_reviews.py` (fetches all NYC Think Coffee locations, 3 reviews each).
+**Yelp signals:** `data/yelp_reviews_bundled.csv` + `data/yelp_popular_items.csv` — shipped with the repo, no API key needed on deploy.
 
 ## Deploy (Streamlit Community Cloud — recommended)
 

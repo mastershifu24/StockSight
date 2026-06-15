@@ -8,19 +8,13 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_MAP = ROOT / "data" / "demo_item_map.csv"
 DEFAULT_CATALOG = ROOT / "data" / "menu_catalog.csv"
 DEFAULT_YELP = ROOT / "data" / "yelp_popular_items.csv"
-DEFAULT_YELP_REVIEWS = ROOT / "data" / "yelp_reviews_manual.csv"
-DEFAULT_YELP_FETCHED = ROOT / "data" / "yelp_reviews_fetched.csv"
 
 
 def load_yelp_reviews() -> pd.DataFrame:
-    """Prefer merged fetched file (manual + API); fall back to manual only."""
-    fetched = Path(DEFAULT_YELP_FETCHED)
-    if fetched.exists():
-        return pd.read_csv(fetched)
-    manual = Path(DEFAULT_YELP_REVIEWS)
-    if manual.exists():
-        return pd.read_csv(manual)
-    return pd.DataFrame()
+    """Bundled reviews — no local script or API key required on deploy."""
+    from src.yelp_data import load_bundled_reviews
+
+    return load_bundled_reviews()
 
 
 def load_demo_item_map(csv_path: str | Path = DEFAULT_MAP) -> pd.DataFrame:

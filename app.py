@@ -14,7 +14,6 @@ from src.menu import (
     load_demo_item_map,
     load_menu_catalog,
     load_yelp_popular,
-    load_yelp_reviews,
 )
 from src.recommend import load_recipes, weekly_order_list
 from src.ui import show_dataframe, show_plotly
@@ -44,9 +43,24 @@ def _load_default(path: str) -> pd.DataFrame:
     return load_sales(path)
 
 
+def _yelp_api_key() -> str | None:
+    try:
+        key = st.secrets.get("YELP_API_KEY", "")
+        return key.strip() if key else None
+    except Exception:
+        return None
+
+
+@st.cache_data(ttl=604800, show_spinner=False)
+def _load_yelp_reviews(api_key: str | None) -> pd.DataFrame:
+    from src.yelp_data import get_reviews
+
+    return get_reviews(api_key)
+
+
 item_map = load_demo_item_map()
 yelp_popular = load_yelp_popular()
-yelp_reviews = load_yelp_reviews()
+yelp_reviews = _load_yelp_reviews(_yelp_api_key())
 menu_catalog = load_menu_catalog()
 
 if uploaded:
@@ -110,23 +124,22 @@ fig = px.bar(
 )
 show_plotly(fig)
 
-with st.expander("Yelp demand signals (NYC locations — public reviews)"):
-    store_n = yelp_reviews["store_address"].nunique() if "store_address" in yelp_reviews.columns else 0
+with st.expander("Yelp demand signals (public reviews)"):
+    store_n = (
+        yelp_reviews["store_address"].nunique()
+        if "store_address" in yelp_reviews.columns and not yelp_reviews.empty
+        else 1
+    )
     st.caption(
-        f"**{len(yelp_reviews)} reviews** cataloged "
-        f"({store_n} locations via API + manual). "
-        f"Yelp API returns **3 excerpts per store** — run `fetch_yelp_reviews.py` for all NYC locations. "
-        "Social proof only, not sales volume."
+        f"**{len(yelp_reviews)} reviews** from Think Coffee's public Yelp pages "
+        f"({store_n} location{'s' if store_n != 1 else ''}). "
+        "Popular drinks from Yelp menu data. **Not used for order forecasting.**"
     )
     show_dataframe(yelp_popular.sort_values("review_mentions", ascending=False), hide_index=True)
     if not yelp_reviews.empty:
-        st.markdown("**Cataloged reviews**")
+        st.markdown("**Sample reviews**")
         review_cols = [c for c in ["store_address", "user", "rating", "date", "menu_mentions"] if c in yelp_reviews.columns]
         show_dataframe(yelp_reviews[review_cols], hide_index=True)
-    st.write(
-        "Refresh: `set YELP_API_KEY=...` then `python scripts/fetch_yelp_reviews.py` "
-        "(fetches all Think Coffee NYC locations, 3 reviews each)."
-    )
 
 with st.expander("Think Coffee menu catalog (from public menus)"):
     show_dataframe(menu_catalog, hide_index=True)
