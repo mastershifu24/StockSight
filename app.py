@@ -147,7 +147,9 @@ for i, example in enumerate(EXAMPLE_QUESTIONS):
         )
         st.session_state.messages.append({"role": "user", "content": example})
         st.session_state.messages.append({"role": "assistant", "content": reply})
-        st.session_state.last_followups = follow_up_suggestions(example, orders)
+        st.session_state.last_followups = follow_up_suggestions(
+            example, orders, forecast, display_names, recipes
+        )
         st.rerun()
 
 for msg in st.session_state.messages:
@@ -166,7 +168,9 @@ if prompt := st.chat_input("How much bacon should we order this week?"):
         recipes=recipes,
     )
     st.session_state.messages.append({"role": "assistant", "content": reply})
-    st.session_state.last_followups = follow_up_suggestions(prompt, orders)
+    st.session_state.last_followups = follow_up_suggestions(
+        prompt, orders, forecast, display_names, recipes
+    )
     st.rerun()
 
 followups = st.session_state.get("last_followups", [])
@@ -186,7 +190,9 @@ if followups and st.session_state.messages:
             )
             st.session_state.messages.append({"role": "user", "content": fu})
             st.session_state.messages.append({"role": "assistant", "content": reply})
-            st.session_state.last_followups = follow_up_suggestions(fu, orders)
+            st.session_state.last_followups = follow_up_suggestions(
+                fu, orders, forecast, display_names, recipes
+            )
             st.rerun()
 
 with st.expander("All example questions"):

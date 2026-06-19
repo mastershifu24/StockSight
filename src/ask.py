@@ -51,6 +51,8 @@ MENU_ALIASES: dict[str, str] = {
     "almond croissant": "almond_croissant",
     "egg sandwich": "egg_and_cheese",
     "egg and cheese": "egg_and_cheese",
+    "sandwich": "egg_and_cheese",
+    "sandwiches": "egg_and_cheese",
     "vegan sandwich": "vegan_sandwich",
     "graham cracker": "graham_cracker_latte",
     "chocolate cookie": "chocolate_cookie",
@@ -138,6 +140,81 @@ def _extract_dow(question: str) -> str | None:
         if key in q:
             return val
     return None
+
+
+def _classify_question(
+    question: str,
+    orders: pd.DataFrame,
+    forecast: pd.DataFrame,
+    display_names: dict[str, str],
+) -> dict:
+    """Detect intent and entities for contextual follow-ups."""
+    q = _normalize(question)
+    ingredient = _find_ingredient(q, orders)
+    menu_item = _find_menu_item(q, forecast, display_names)
+    dow = _extract_dow(q)
+    label = display_names.get(menu_item, menu_item.replace("_", " ").title()) if menu_item else None
+
+    if any(w in q for w in ("help", "what can", "how do i", "example")):
+        intent = "help"
+    elif any(w in q for w in ("summarize", "summary", "overview")) and "order" in q:
+        intent = "summarize"
+    elif any(w in q for w in ("top", "most", "biggest", "largest")) and any(
+        w in q for w in ("ingredient", "order", "stock", "buy")
+    ):
+        intent = "top_orders"
+    elif "buffer" in q or "safety" in q:
+        intent = "buffer"
+    elif any(w in q for w in ("busiest", "busy day", "peak day")):
+        intent = "busiest_day"
+    elif any(w in q for w in ("stockout", "run out", "running out", "will we run")):
+        intent = "stockout"
+    elif q.startswith("why") or "where does" in q or "what uses" in q:
+        intent = "why"
+    elif any(w in q for w in ("last week", "historically", "sold last")):
+        intent = "history"
+    elif any(w in q for w in ("have", "on hand", "in stock", "left")) and "order" not in q:
+        intent = "on_hand"
+    elif menu_item and dow:
+        intent = "menu_day"
+    elif menu_item:
+        intent = "menu_forecast"
+    elif ingredient:
+        intent = "ingredient_order"
+    else:
+        intent = "unknown"
+
+    return {
+        "intent": intent,
+        "ingredient": ingredient,
+        "menu_item": menu_item,
+        "menu_label": label,
+        "dow": dow,
+    }
+
+
+def _related_ingredients_for_menu(menu_item: str, recipes: pd.DataFrame | None) -> list[str]:
+    if recipes is None or recipes.empty:
+        return []
+    ings = recipes.loc[recipes["menu_item"] == menu_item, "ingredient"].tolist()
+    return [_fmt_ingredient(i) for i in ings[:3]]
+
+
+def _dedupe_followups(question: str, suggestions: list[str], limit: int = 3) -> list[str]:
+    q_norm = _normalize(question)
+    seen: set[str] = set()
+    out: list[str] = []
+    for s in suggestions:
+        if _normalize(s) == q_norm:
+            continue
+        key = _normalize(s)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(s)
+        if len(out) >= limit:
+            break
+    return out
 
 
 def _answer_top_orders(orders: pd.DataFrame, n: int = 5) -> str:
@@ -306,12 +383,142 @@ def answer_question(
     return "Try: " + ", ".join(suggestions) + ".\n\n" + HELP_TEXT
 
 
-def follow_up_suggestions(question: str, orders: pd.DataFrame) -> list[str]:
-    q = _normalize(question)
-    if "bacon" in q:
-        return ["Why do we need so much bacon?", "Will we run out of bacon?", "Summarize this week's order list"]
-    if "buffer" in q:
-        return ["How much bacon should we order this week?", "Which ingredients should we order the most?"]
-    if "latte" in q or "spanish" in q:
-        return ["How much milk should we order?", "What's our busiest day for sandwiches?"]
-    return ["Which ingredients should we order the most?", "How much bacon should we order this week?"]
+def follow_up_suggestions(
+    question: str,
+    orders: pd.DataFrame,
+    forecast: pd.DataFrame,
+    display_names: dict[str, str],
+    recipes: pd.DataFrame | None = None,
+) -> list[str]:
+    """Contextual follow-ups based on what the user just asked."""
+    ctx = _classify_question(question, orders, forecast, display_names)
+    intent = ctx["intent"]
+    ing = ctx["ingredient"]
+    label = ctx["menu_label"]
+    dow = ctx["dow"]
+    ing_name = _fmt_ingredient(ing) if ing else None
+
+    suggestions: list[str] = []
+
+    if intent == "ingredient_order" and ing:
+        suggestions = [
+            f"Why do we need so much {ing_name}?",
+            f"Will we run out of {ing_name}?",
+            f"How does the safety buffer affect {ing_name}?",
+        ]
+    elif intent == "stockout" and ing:
+        suggestions = [
+            f"Why do we need so much {ing_name}?",
+            f"How much {ing_name} should we order this week?",
+            "How does the safety buffer affect orders?",
+        ]
+    elif intent == "why" and ing:
+        suggestions = [
+            f"Will we run out of {ing_name}?",
+            f"How much {ing_name} should we order this week?",
+            f"How does the safety buffer affect {ing_name}?",
+        ]
+    elif intent == "on_hand" and ing:
+        suggestions = [
+            f"How much {ing_name} should we order this week?",
+            f"Why do we need so much {ing_name}?",
+            f"Will we run out of {ing_name}?",
+        ]
+    elif intent == "buffer":
+        if ing:
+            suggestions = [
+                f"How much {ing_name} should we order this week?",
+                f"Will we run out of {ing_name}?",
+                "Summarize this week's order list",
+            ]
+        else:
+            suggestions = [
+                "How much bacon should we order this week?",
+                "Which ingredients should we order the most?",
+                "Summarize this week's order list",
+            ]
+    elif intent == "summarize":
+        top = orders.iloc[0]
+        top_name = _fmt_ingredient(top["ingredient"])
+        suggestions = [
+            f"How much {top_name} should we order this week?",
+            "Which ingredients should we order the most?",
+            "How does the safety buffer affect orders?",
+        ]
+    elif intent == "top_orders":
+        if ing:
+            suggestions = [
+                f"Why do we need so much {ing_name}?",
+                "Summarize this week's order list",
+                f"Will we run out of {ing_name}?",
+            ]
+        else:
+            top = orders.iloc[0]
+            top_name = _fmt_ingredient(top["ingredient"])
+            suggestions = [
+                f"How much {top_name} should we order this week?",
+                "Summarize this week's order list",
+                "How does the safety buffer affect orders?",
+            ]
+    elif intent == "busiest_day":
+        if label:
+            related = _related_ingredients_for_menu(ctx["menu_item"], recipes)
+            suggestions = [
+                f"How many {label}s next week?",
+                f"Forecast {label}s for Saturday",
+            ]
+            if related:
+                suggestions.append(f"How much {related[0]} should we order this week?")
+            else:
+                suggestions.append("How does the safety buffer affect orders?")
+        else:
+            suggestions = [
+                "How many Spanish lattes next week?",
+                "What's our busiest day for sandwiches?",
+                "Forecast almond croissants for Saturday",
+            ]
+    elif intent == "menu_day" and label and dow:
+        suggestions = [
+            f"How many {label}s next week?",
+            f"What's our busiest day for {label.lower()}s?",
+            f"Forecast {label}s for Saturday" if dow != "Sat" else f"Forecast {label}s for Sunday",
+        ]
+    elif intent == "menu_forecast" and label:
+        related = _related_ingredients_for_menu(ctx["menu_item"], recipes)
+        suggestions = [
+            f"Forecast {label}s for Saturday",
+            f"What's our busiest day for {label.lower()}s?",
+        ]
+        if related:
+            suggestions.append(f"How much {related[0]} should we order this week?")
+        else:
+            suggestions.append("Which ingredients should we order the most?")
+    elif intent == "history" and label:
+        suggestions = [
+            f"How many {label}s next week?",
+            f"Forecast {label}s for Saturday",
+            f"What's our busiest day for {label.lower()}s?",
+        ]
+    elif intent == "help":
+        suggestions = EXAMPLE_QUESTIONS[:3]
+    else:
+        if ing:
+            suggestions = [
+                f"Why do we need so much {ing_name}?",
+                f"Will we run out of {ing_name}?",
+                "Summarize this week's order list",
+            ]
+        elif label:
+            suggestions = [
+                f"How many {label}s next week?",
+                f"Forecast {label}s for Saturday",
+                "Which ingredients should we order the most?",
+            ]
+        else:
+            suggestions = [
+                "How much bacon should we order this week?",
+                "Which ingredients should we order the most?",
+                "Summarize this week's order list",
+            ]
+
+    return _dedupe_followups(question, suggestions)
