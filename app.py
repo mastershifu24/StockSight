@@ -17,7 +17,7 @@ from src.menu import (
     load_yelp_popular,
 )
 from src.recommend import load_recipes, weekly_order_list
-from src.ask import HELP_TEXT, answer_question
+from src.ask import EXAMPLE_QUESTIONS, HELP_TEXT, answer_question, follow_up_suggestions
 from src.ui import show_dataframe, show_plotly
 
 ROOT = Path(__file__).parent
@@ -120,12 +120,35 @@ if "bacon" in orders["ingredient"].values:
     )
 
 st.subheader("Ask StockSight")
-st.caption("Natural-language questions over this week's forecast and orders. Starts blank each session.")
+st.caption("Ask in plain English — orders, forecasts, busiest days, stockouts. Starts blank each session.")
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
-if st.button("Clear chat", type="secondary"):
-    st.session_state.messages = []
-    st.rerun()
+
+col_clear, _ = st.columns([1, 4])
+with col_clear:
+    if st.button("Clear chat", type="secondary"):
+        st.session_state.messages = []
+        st.session_state.pop("last_followups", None)
+        st.rerun()
+
+st.caption("**Try a question:**")
+example_cols = st.columns(3)
+for i, example in enumerate(EXAMPLE_QUESTIONS):
+    if example_cols[i % 3].button(example, key=f"example_{i}", use_container_width=True):
+        reply = answer_question(
+            example,
+            orders,
+            forecast,
+            display_names,
+            daily=daily,
+            safety_buffer=safety_buffer,
+            recipes=recipes,
+        )
+        st.session_state.messages.append({"role": "user", "content": example})
+        st.session_state.messages.append({"role": "assistant", "content": reply})
+        st.session_state.last_followups = follow_up_suggestions(example, orders)
+        st.rerun()
 
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
@@ -133,15 +156,43 @@ for msg in st.session_state.messages:
 
 if prompt := st.chat_input("How much bacon should we order this week?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    reply = answer_question(prompt, orders, forecast, display_names)
+    reply = answer_question(
+        prompt,
+        orders,
+        forecast,
+        display_names,
+        daily=daily,
+        safety_buffer=safety_buffer,
+        recipes=recipes,
+    )
     st.session_state.messages.append({"role": "assistant", "content": reply})
-    with st.chat_message("assistant"):
-        st.markdown(reply)
+    st.session_state.last_followups = follow_up_suggestions(prompt, orders)
+    st.rerun()
 
-with st.expander("Example questions"):
+followups = st.session_state.get("last_followups", [])
+if followups and st.session_state.messages:
+    st.caption("**Follow-up:**")
+    fu_cols = st.columns(min(len(followups), 3))
+    for i, fu in enumerate(followups[:3]):
+        if fu_cols[i].button(fu, key=f"followup_{i}", use_container_width=True):
+            reply = answer_question(
+                fu,
+                orders,
+                forecast,
+                display_names,
+                daily=daily,
+                safety_buffer=safety_buffer,
+                recipes=recipes,
+            )
+            st.session_state.messages.append({"role": "user", "content": fu})
+            st.session_state.messages.append({"role": "assistant", "content": reply})
+            st.session_state.last_followups = follow_up_suggestions(fu, orders)
+            st.rerun()
+
+with st.expander("All example questions"):
     st.markdown(HELP_TEXT)
+    for ex in EXAMPLE_QUESTIONS:
+        st.markdown(f"- {ex}")
 
 st.subheader("Menu forecast (next 7 days)")
 pivot = (
