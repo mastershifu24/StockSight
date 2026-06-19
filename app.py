@@ -17,6 +17,7 @@ from src.menu import (
     load_yelp_popular,
 )
 from src.recommend import load_recipes, weekly_order_list
+from src.ask import HELP_TEXT, answer_question
 from src.ui import show_dataframe, show_plotly
 
 ROOT = Path(__file__).parent
@@ -117,6 +118,30 @@ if "bacon" in orders["ingredient"].values:
         f"**Bacon:** order ~{bacon_row['recommended_order']} {bacon_row['unit']} this week "
         f"(from egg sandwiches, ranchero, burritos). Matches the stockout problem your barista mentioned."
     )
+
+st.subheader("Ask StockSight")
+st.caption("Natural-language questions over this week's forecast and orders. Starts blank each session.")
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if st.button("Clear chat", type="secondary"):
+    st.session_state.messages = []
+    st.rerun()
+
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+if prompt := st.chat_input("How much bacon should we order this week?"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    reply = answer_question(prompt, orders, forecast, display_names)
+    st.session_state.messages.append({"role": "assistant", "content": reply})
+    with st.chat_message("assistant"):
+        st.markdown(reply)
+
+with st.expander("Example questions"):
+    st.markdown(HELP_TEXT)
 
 st.subheader("Menu forecast (next 7 days)")
 pivot = (
