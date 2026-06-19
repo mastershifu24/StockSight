@@ -6,6 +6,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from src.evaluate import compare_models
 from src.forecast import DOW_NAMES, forecast_next_week
 from src.ingest import daily_item_sales, load_sales
 from src.menu import (
@@ -63,6 +64,11 @@ def _load_yelp_locations() -> pd.DataFrame:
     from src.yelp_data import load_bundled_locations
 
     return load_bundled_locations()
+
+
+@st.cache_data(show_spinner="Evaluating forecast models...")
+def _model_comparison(_daily: pd.DataFrame, holdout: int, lookback: int, buffer: float) -> pd.DataFrame:
+    return compare_models(_daily, holdout_days=holdout, lookback_weeks=lookback, safety_buffer=buffer)
 
 
 item_map = load_demo_item_map()
@@ -131,6 +137,26 @@ fig = px.bar(
     title="Historical demand (Think Coffee menu labels in demo mode)",
 )
 show_plotly(fig)
+
+with st.expander("Model evaluation (data science)"):
+    st.caption(
+        "28-day holdout backtest. Each model predicts daily sales using only prior history. "
+        "**Production uses day-of-week mean** for interpretability; re-run backtest on real POS to pick the winner."
+    )
+    comparison = _model_comparison(daily, holdout=28, lookback=lookback_weeks, buffer=safety_buffer)
+    show_dataframe(comparison, hide_index=True)
+    if not comparison.empty:
+        best_mae = comparison.iloc[0]["model"]
+        dow_row = comparison[comparison["model"] == "dow_mean"]
+        if not dow_row.empty:
+            st.write(
+                f"Lowest MAE on holdout: **{best_mae}** | "
+                f"dow_mean stockout rate: **{dow_row.iloc[0]['stockout_rate_pct']:.1f}%** "
+                f"→ with {safety_buffer:.0%} buffer: **{dow_row.iloc[0]['stockout_rate_buffered_pct']:.1f}%**"
+            )
+        else:
+            st.write(f"Lowest MAE on holdout: **{best_mae}**")
+    st.caption("Full notebook: `notebooks/stocksight_eda_backtest.ipynb` | CLI: `python run_backtest.py`")
 
 with st.expander("Yelp demand signals (public reviews)"):
     store_n = (

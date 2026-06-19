@@ -27,6 +27,11 @@ streamlit run app.py
 
 **Yelp signals:** `data/yelp_reviews_bundled.csv` + `data/yelp_popular_items.csv` — shipped with the repo, no API key needed on deploy.
 
+## Data science / interviews
+
+- **Backtest:** `python run_backtest.py` — compares 4 models on 28-day holdout (MAE, MAPE, stockout rate)
+- **Notebook:** `notebooks/stocksight_eda_backtest.ipynb`
+
 ## Deploy (Streamlit Community Cloud — recommended)
 
 **Yes, this is ready to deploy** for a demo/pilot. Best platform: **[Streamlit Community Cloud](https://streamlit.io/cloud)** (free, built for this exact use case).

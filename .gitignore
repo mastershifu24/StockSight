@@ -6,3 +6,9 @@ venv/
 .streamlit/secrets.toml
 *.log
 .DS_Store
+.ipynb_checkpoints/
+*.local.md
+notes/
+docs/private/
+PITCH.md
+INTERVIEW_DS.md
