@@ -1,5 +1,6 @@
 model,n_predictions,mae,rmse,mape_pct,stockout_rate_pct,stockout_rate_buffered_pct,rank
-global_mean,214,3.969,5.109,79.87,38.8,29.9,1
-rolling_7,214,4.244,5.418,81.76,38.8,33.6,2
-exp_smoothing,214,4.344,5.438,82.29,43.5,34.6,3
-dow_mean,214,4.393,5.666,90.34,43.5,34.1,4
+ridge_regression,214,3.931,5.225,79.76,42.1,30.8,1
+global_mean,214,3.969,5.109,79.87,38.8,29.9,2
+rolling_7,214,4.244,5.418,81.76,38.8,33.6,3
+exp_smoothing,214,4.344,5.438,82.29,43.5,34.6,4
+dow_mean,214,4.393,5.666,90.34,43.5,34.1,5

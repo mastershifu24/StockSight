@@ -1,5 +1,7 @@
 """Think Coffee menu labels and demo data mapping."""
 
+from __future__ import annotations
+
 from pathlib import Path
 
 import pandas as pd

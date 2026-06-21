@@ -1,5 +1,7 @@
 """Load and normalize cafe POS sales data."""
 
+from __future__ import annotations
+
 from pathlib import Path
 
 import pandas as pd
@@ -31,10 +33,25 @@ def load_sales(csv_path: str | Path) -> pd.DataFrame:
 def daily_item_sales(df: pd.DataFrame) -> pd.DataFrame:
     """Aggregate to one row per date + menu item."""
     daily = (
-        df.groupby([df["transaction_date"].dt.date, "item"], as_index=False)["quantity"]
+        df.assign(sale_date=df["transaction_date"].dt.date)
+        .groupby(["sale_date", "item"], as_index=False)["quantity"]
         .sum()
-        .rename(columns={"transaction_date": "date", "quantity": "units_sold"})
+        .rename(columns={"sale_date": "date", "quantity": "units_sold"})
     )
     daily["date"] = pd.to_datetime(daily["date"])
     daily["dow"] = daily["date"].dt.dayofweek  # Mon=0
     return daily
+
+
+if __name__ == "__main__":
+    root = Path(__file__).resolve().parent.parent
+    csv = root / "Cleaned_DataSet.csv"
+    print(f"Reading: {csv}\n")
+
+    sales = load_sales(csv)
+    daily = daily_item_sales(sales)
+
+    print(f"Transactions: {len(sales):,}")
+    print(f"Date range: {sales['transaction_date'].min().date()} → {sales['transaction_date'].max().date()}")
+    print(f"Daily rows: {len(daily):,}\n")
+    print(daily.head(8).to_string(index=False))

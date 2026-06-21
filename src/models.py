@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 import pandas as pd
+from sklearn.linear_model import Ridge
 
 DOW_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
-MODEL_NAMES = ("dow_mean", "rolling_7", "global_mean", "exp_smoothing")
+MODEL_NAMES = ("dow_mean", "rolling_7", "global_mean", "exp_smoothing", "ridge_regression")
+
+FEATURE_COLS = ("dow", "lag_1", "lag_7")
+MIN_RIDGE_ROWS = 14
+RIDGE_ALPHA = 1.0
 
 
 def _history_before(history: pd.DataFrame, before_date: pd.Timestamp, lookback_weeks: int) -> pd.DataFrame:
@@ -15,6 +20,38 @@ def _history_before(history: pd.DataFrame, before_date: pd.Timestamp, lookback_w
     if recent.empty:
         recent = history[history["date"] < before_date]
     return recent
+
+
+def _item_series(history: pd.DataFrame, item: str) -> pd.DataFrame:
+    return history[history["item"] == item].sort_values("date").copy()
+
+
+def _units_on_or_before(series: pd.DataFrame, day: pd.Timestamp) -> float | None:
+    match = series[series["date"] == day]
+    if not match.empty:
+        return float(match.iloc[-1]["units_sold"])
+    prior = series[series["date"] < day]
+    if prior.empty:
+        return None
+    return float(prior.iloc[-1]["units_sold"])
+
+
+def _ridge_training_frame(series: pd.DataFrame) -> pd.DataFrame:
+    """Build supervised rows: dow + lags -> next-day units sold."""
+    frame = series.copy()
+    frame["lag_1"] = frame["units_sold"].shift(1)
+    frame["lag_7"] = frame["units_sold"].shift(7)
+    return frame.dropna(subset=["lag_1", "lag_7"])
+
+
+def _ridge_features(series: pd.DataFrame, target_date: pd.Timestamp) -> list[float] | None:
+    lag_1_day = target_date - pd.Timedelta(days=1)
+    lag_7_day = target_date - pd.Timedelta(days=7)
+    lag_1 = _units_on_or_before(series, lag_1_day)
+    lag_7 = _units_on_or_before(series, lag_7_day)
+    if lag_1 is None or lag_7 is None:
+        return None
+    return [float(target_date.dayofweek), lag_1, lag_7]
 
 
 def predict_global_mean(history: pd.DataFrame, item: str) -> float:
@@ -46,6 +83,29 @@ def predict_exp_smoothing(history: pd.DataFrame, item: str, alpha: float = 0.3) 
     return level
 
 
+def predict_ridge(history: pd.DataFrame, item: str, target_date: pd.Timestamp) -> float:
+    """
+    Ridge regression on lag features (dow, lag_1, lag_7).
+
+    Retrained on each prediction using only prior history for that item.
+    Falls back to day-of-week mean when history is too short.
+    """
+    series = _item_series(history, item)
+    train = _ridge_training_frame(series)
+    if len(train) < MIN_RIDGE_ROWS:
+        return predict_dow_mean(history, item, target_date.dayofweek)
+
+    features = _ridge_features(series, target_date)
+    if features is None:
+        return predict_dow_mean(history, item, target_date.dayofweek)
+
+    model = Ridge(alpha=RIDGE_ALPHA)
+    model.fit(train[list(FEATURE_COLS)], train["units_sold"])
+    x_pred = pd.DataFrame([features], columns=list(FEATURE_COLS))
+    pred = float(model.predict(x_pred)[0])
+    return max(0.0, pred)
+
+
 def predict(
     model: str,
     history: pd.DataFrame,
@@ -63,4 +123,6 @@ def predict(
         return predict_rolling_mean(hist, item, window=7)
     if model == "exp_smoothing":
         return predict_exp_smoothing(hist, item, alpha=0.3)
+    if model == "ridge_regression":
+        return predict_ridge(hist, item, target_date)
     raise ValueError(f"Unknown model: {model}")
